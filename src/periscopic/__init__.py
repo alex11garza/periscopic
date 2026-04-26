@@ -28,7 +28,7 @@ pad_level reference
     3  — level 2 + dummy LEFT JOIN
 """
 
-__version__ = "0.1.1"
+__version__ = "1.0.0"
 
 from . import _orq        as _orq_mod
 from . import _shrinkwrap as _sw_mod
