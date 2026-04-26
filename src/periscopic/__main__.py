@@ -14,10 +14,121 @@ Commands:
 
 import argparse
 import json
+import shutil
 import sys
 
 import periscopic as p
 
+
+#--UI Headers--------------------------------------------------------------------------
+
+BLUE = "\033[94m"
+LIGHT_BLUE = "\033[38;5;117m"
+DIM_BLUE = "\033[34m"
+RESET = "\033[0m"
+
+MIN_BOX_WIDTH = 70
+MAX_BOX_WIDTH = 120
+
+BANNER = [
+    " ____   ____  ____   ___   ____   ___    ___   ____  ____   ___ ",
+    "|  _ \\ | ___||  _ \\ |_ _| / ___| / __|  / _ \\ |  _ \\|_  _| / __|",
+    "| |_) || __| | |_) | | |  \\___ \\| |    | | | || |_) | | | | |   ",
+    "|  __/ |___||  _ <  | |   ___) || |__  | |_| ||  __/  | | | |__ ",
+    "|_|         |_| \\_\\|___| |____/  \\___|  \\___/ |_|    |___| \\___|",
+]
+
+MOTIF = [
+    "    [A]- - - - - -[B]",
+    "      \\   . - .   /  ",
+    "       \\ ( MPC ) /   ",
+    "        \\ `- -' /    ",
+    "         \\  |  /     ",
+    "          \\ | /      ",
+    "           [C]       ",
+]
+
+
+def _visible_len(s):
+    out, i = 0, 0
+    while i < len(s):
+        if s[i] == "\033":
+            while i < len(s) and s[i] != "m":
+                i += 1
+            i += 1
+        else:
+            out += 1
+            i += 1
+    return out
+
+
+def _box_line(content, border, width):
+    pad = width - 2 - _visible_len(content)
+    if pad < 0:
+        pad = 0
+    return f"{border}│{RESET if border else ''}{content}{' ' * pad}{border}│{RESET if border else ''}"
+
+
+def _center(content, width):
+    pad = width - 2 - _visible_len(content)
+    left = pad // 2
+    right = pad - left
+    return f"{' ' * left}{content}{' ' * right}"
+
+
+def _print_welcome():
+    use_color = sys.stdout.isatty()
+    border = BLUE if use_color else ""
+    accent = LIGHT_BLUE if use_color else ""
+    dim = DIM_BLUE if use_color else ""
+    reset = RESET if use_color else ""
+
+    term_width = shutil.get_terminal_size((80, 24)).columns
+    width = max(MIN_BOX_WIDTH, min(MAX_BOX_WIDTH, term_width - 2))
+
+    top = f"{border}╭{'─' * (width - 2)}╮{reset}"
+    bottom = f"{border}╰{'─' * (width - 2)}╯{reset}"
+
+    print(top)
+    print(_box_line("", border, width))
+    for line in BANNER:
+        colored = f"{accent}{line}{reset}"
+        print(_box_line(_center(colored, width), border, width))
+    print(_box_line("", border, width))
+    for line in MOTIF:
+        print(_box_line(_center(line, width), border, width))
+    print(_box_line("", border, width))
+    print(_box_line(
+        _center("Privacy-preserving SQL query transformation", width),
+        border, width,
+    ))
+    print(_box_line(
+        _center(f"v{p.__version__}  •  type /help or /quit", width),
+        border, width,
+    ))
+    print(_box_line("", border, width))
+    print(bottom)
+
+    print()
+    print(f"  {dim}? for shortcuts{reset}")
+    print()
+
+
+def _repl():
+    _print_welcome()
+    while True:
+        try:
+            line = input("periscopic> ")
+        except (EOFError, KeyboardInterrupt):
+            print()
+            return
+        if not line.strip():
+            continue
+        print(line)
+
+
+
+# -- command handlers ----------------------------------------------------------
 
 def _read_sql(args):
     """Return SQL from --sql flag or stdin."""
@@ -125,8 +236,8 @@ def main(argv=None):
     args = parser.parse_args(argv)
 
     if not args.command:
-        parser.print_help()
-        sys.exit(1)
+        _repl()
+        return
 
     handlers = {
         "orq": _cmd_orq,
