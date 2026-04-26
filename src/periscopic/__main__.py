@@ -16,6 +16,7 @@ import argparse
 import json
 import shutil
 import sys
+import time
 
 import periscopic as p
 
@@ -25,6 +26,7 @@ import periscopic as p
 BLUE = "\033[94m"
 LIGHT_BLUE = "\033[38;5;117m"
 DIM_BLUE = "\033[34m"
+DIM_GREY = "\033[38;5;240m"
 RESET = "\033[0m"
 
 MIN_BOX_WIDTH = 70
@@ -110,18 +112,31 @@ def _print_welcome():
     print(bottom)
 
     print()
-    print(f"  {dim}? for shortcuts{reset}")
+    print(f"  ? for shortcuts{reset}")
+    print()
+    grey = DIM_GREY if use_color else ""
+    print(f"{grey}{'─' * term_width}{reset}")
     print()
 
 
 def _repl():
     _print_welcome()
+    last_interrupt = 0.0
     while True:
         try:
             line = input("periscopic> ")
-        except (EOFError, KeyboardInterrupt):
+        except EOFError:
             print()
             return
+        except KeyboardInterrupt:
+            now = time.monotonic()
+            if now - last_interrupt < 2.0:
+                print()
+                return
+            last_interrupt = now
+            print(f"\n{DIM_GREY}(press Ctrl+C again to exit){RESET}")
+            continue
+        last_interrupt = 0.0
         if not line.strip():
             continue
         print(line)
