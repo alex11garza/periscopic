@@ -25,6 +25,7 @@ import periscopic as p
 
 BLUE = "\033[94m"
 LIGHT_BLUE = "\033[38;5;117m"
+WHITE = "\033[97m"
 DIM_BLUE = "\033[34m"
 DIM_GREY = "\033[38;5;240m"
 RESET = "\033[0m"
@@ -81,7 +82,7 @@ def _center(content, width):
 def _print_welcome():
     use_color = sys.stdout.isatty()
     border = BLUE if use_color else ""
-    accent = LIGHT_BLUE if use_color else ""
+    accent = WHITE if use_color else ""
     dim = DIM_BLUE if use_color else ""
     reset = RESET if use_color else ""
 
@@ -134,7 +135,7 @@ def _repl():
                 print()
                 return
             last_interrupt = now
-            print(f"\n{DIM_GREY}(press Ctrl+C again to exit){RESET}")
+            print(f"\n\n{DIM_GREY}(press Ctrl+C again to exit){RESET}\n")
             continue
         last_interrupt = 0.0
         if not line.strip():
