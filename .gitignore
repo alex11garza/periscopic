@@ -219,3 +219,19 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 .DS_Store
+
+#claude setup 
+.claude/
+
+#vscode settings
+.vscode/
+
+# Project Artifacts
+InstructionNoteBooks/
+Local-MPC/
+results/
+Paper/
+ParseTimeNoteBooks/
+QueryRunTimeNoteBooks/
+
+
