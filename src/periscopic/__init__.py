@@ -11,9 +11,9 @@ All three pipeline stages are callable directly from this namespace:
     # ShrinkWrap: apply structural padding
     padded = p.shrinkwrap(sql, padding=True, pad_level=2)
 
-    # Periscopic: DP-estimated join reordering
+    # Periscopic: DP-estimated join reordering (returns reordered table list)
     ordered = p.periscopic(
-        sql,
+        ["orders", "users", "products"],
         catalog=[("users", 100), ("orders", 200), ("products", 50)],
         epsilon=0.5,
     )
@@ -153,41 +153,42 @@ def shrinkwrap_pad(sql: str, pad: str) -> str:
 # ---------------------------------------------------------------------------
 
 def periscopic(
-    sql: str,
+    tables: list,
     catalog: list,
     *,
     epsilon: float = 0.5,
-) -> str:
+) -> list:
     """
-    Reorder FROM/JOIN tables in a SQL query using differentially private
-    table size estimates (smallest table first).
+    Reorder a list of table names smallest → largest using differentially
+    private size estimates from the given catalog.
 
     True row counts from the catalog are never stored — Laplace(1/epsilon)
     noise is added before insertion into the internal hash map + min-heap,
     satisfying epsilon-differential privacy.
 
     Args:
-        sql     (str):              Input SQL string.
+        tables  (list[str]):             Table names from a FROM/JOIN clause.
         catalog (list[tuple[str, int]]): List of (table_name, true_row_count)
-                                    pairs, e.g. from pg_class.reltuples.
-        epsilon (float):            Privacy budget (default 0.5).
-                                    Smaller => more noise => more privacy.
+                                         pairs, e.g. from pg_class.reltuples.
+        epsilon (float):                 Privacy budget (default 0.5).
+                                         Smaller => more noise => more privacy.
 
     Returns:
-        str: SQL with FROM/JOIN tables reordered smallest → largest.
-             Returned unchanged if only one table or no JOIN is found.
+        list[str]: Input table names reordered smallest → largest.
+                   Tables not in the catalog are sorted last.
 
     Example:
         >>> import periscopic as p
         >>> p.periscopic(
-        ...     "SELECT name FROM orders JOIN users ON orders.user_id = users.id",
+        ...     ["orders", "users"],
         ...     catalog=[("users", 100), ("orders", 200)],
         ...     epsilon=0.5,
         ... )
+        ['users', 'orders']
     """
     est = _dp_mod.TableSizeEstimator(epsilon)
     est.load(catalog)
-    return est.join_order(sql.split())  # placeholder — join_order operates on table lists
+    return est.join_order(tables)
 
 
 def estimator(catalog: list, *, epsilon: float = 0.5) -> _dp_mod.TableSizeEstimator:
@@ -228,12 +229,16 @@ def transform(
     pad_level: int = 2,
 ) -> dict:
     """
-    Run the full PrivQ pipeline on a SQL query and return each stage's output.
+    Run the full Periscopic pipeline on a SQL query and return each stage's output.
 
     Stages (in order):
         1. ORQ        — sort SELECT columns alphabetically
-        2. Periscopic — reorder JOIN tables by DP size estimate (if catalog given)
-        3. ShrinkWrap — apply structural padding
+        2. Periscopic — compute DP join order from catalog (if catalog given)
+        3. ShrinkWrap — apply structural padding to the ORQ output
+
+    The library does not rewrite the FROM/JOIN clause itself — the caller
+    (typically a server layer with a real SQL parser) is expected to apply
+    the returned 'join_order' to the SQL.
 
     Args:
         sql       (str):                    Input SQL string.
@@ -247,8 +252,8 @@ def transform(
         dict with keys:
             'original'    — input SQL
             'orq'         — after ORQ column sort
-            'periscopic'  — after join reordering (same as orq if no catalog)
-            'shrinkwrap'  — final padded SQL
+            'join_order'  — DP-noisy table ordering (list[str]), or None if no catalog
+            'shrinkwrap'  — final padded SQL (built from the ORQ output)
 
     Example:
         >>> import periscopic as p
@@ -263,19 +268,18 @@ def transform(
     """
     orq_sql = orq(sql)
 
-    periscopic_sql = orq_sql
+    join_order = None
     if catalog:
         est = _dp_mod.TableSizeEstimator(epsilon)
         est.load(catalog)
-        # join_order returns a sorted list of table names — used externally to rewrite SQL
-        periscopic_sql = orq_sql  # SQL rewriting happens in the demo server layer
+        join_order = est.join_order([name for name, _ in catalog])
 
-    padded_sql = shrinkwrap(periscopic_sql, padding=padding, pad_level=pad_level)
+    padded_sql = shrinkwrap(orq_sql, padding=padding, pad_level=pad_level)
 
     return {
         "original":   sql,
         "orq":        orq_sql,
-        "periscopic": periscopic_sql,
+        "join_order": join_order,
         "shrinkwrap": padded_sql,
     }
 
