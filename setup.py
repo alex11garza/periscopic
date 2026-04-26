@@ -65,10 +65,10 @@ ext_periscopic = Extension(
 
 setup(
     name="periscopic",
-    version="0.1.0",
-    description="Privacy-preserving SQL query transformation library (ORQ + ShrinkWrap + DP estimator)",
+    version="0.1.1",
+    description="Privacy-preserving SQL transformations with ORQ, ShrinkWrap, and differential privacy utilities",
     packages=["periscopic"],
     package_dir={"": "src"},
     ext_modules=[ext_orq, ext_shrinkwrap, ext_periscopic],
-    python_requires=">=3.8",
+    python_requires=">=3.9",
 )
