@@ -16,6 +16,9 @@ classifiers = [
 ]
 dependencies = []
 
+[project.scripts]
+periscopic = "periscopic.__main__:main"
+
 [project.urls]
 Homepage = "https://github.com/alex11garza/periscopic"
 Issues = "https://github.com/alex11garza/periscopic/issues"
