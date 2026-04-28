@@ -1,7 +1,7 @@
 #pragma once
 
 /**
- * table_size_estimator.h — Periscopic: differentially private table size map + join planner.
+ * table_size_estimator.h — PrivQ: differentially private table size map + join planner.
  *
  * The estimator holds a hash map of { table_name -> noisy_row_count } and a
  * min-heap over the same entries.  It does NOT touch the database — callers

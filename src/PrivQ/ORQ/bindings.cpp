@@ -2,7 +2,7 @@
  * ORQ/bindings.cpp — pybind11 bindings for orq_sort_query.
  *
  * Exposes the C++ orq_sort_query() function to Python as:
- *   from periscopic._orq import sort_query
+ *   from PrivQ._orq import sort_query
  */
 
 #include <pybind11/pybind11.h>

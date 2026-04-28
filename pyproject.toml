@@ -3,8 +3,8 @@ requires = ["setuptools>=68", "wheel", "pybind11>=3.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "periscopic"
-version = "1.0.0"
+name = "PrivQ"
+version = "1.1.2"
 description = "Privacy-preserving SQL query transformation library"
 readme = "README.md"
 license = "MIT"
@@ -17,8 +17,8 @@ classifiers = [
 dependencies = []
 
 [project.scripts]
-periscopic = "periscopic.__main__:main"
+PrivQ = "PrivQ.__main__:main"
 
 [project.urls]
-Homepage = "https://github.com/alex11garza/periscopic"
-Issues = "https://github.com/alex11garza/periscopic/issues"
+Homepage = "https://github.com/alex11garza/PrivQ"
+Issues = "https://github.com/alex11garza/PrivQ/issues"

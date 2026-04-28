@@ -1,131 +1,51 @@
 """
-periscopic CLI — command-line interface to the Periscopic pipeline.
+PrivQ CLI — command-line interface to the PrivQ pipeline.
 
 Usage:
-    python -m periscopic <command> [options]
-    periscopic <command> [options]        (after pip install)
+    python -m PrivQ <command> [options]
+    PrivQ <command> [options]        (after pip install)
 
 Commands:
     orq         Sort SELECT columns alphabetically
     shrinkwrap  Apply structural padding to a SQL query
-    periscopic  Compute DP join order from a table catalog
+    privq-join  Compute DP join order from a table catalog
     transform   Run the full three-stage pipeline
 """
 
 import argparse
+import importlib.util
 import json
-import shutil
+import os
 import sys
 import time
 
-import periscopic as p
+import PrivQ as p
 
+# UIX/UI imports and helpers
+_helpers_dir = os.path.join(os.path.dirname(__file__), "CLI-Helpers")
 
-#--UI Headers--------------------------------------------------------------------------
+_ui_path = os.path.join(_helpers_dir, "UI.py")
+_spec = importlib.util.spec_from_file_location("privq_ui", _ui_path)
+_ui = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_ui)
+print_welcome = _ui.print_welcome
+DIM_GREY = _ui.COLORS["DIM_GREY"]
+RESET = _ui.COLORS["RESET"]
+COLORS = _ui.COLORS
 
-BLUE = "\033[94m"
-LIGHT_BLUE = "\033[38;5;117m"
-WHITE = "\033[97m"
-DIM_BLUE = "\033[34m"
-DIM_GREY = "\033[38;5;240m"
-RESET = "\033[0m"
-
-MIN_BOX_WIDTH = 70
-MAX_BOX_WIDTH = 120
-
-BANNER = [
-    " ____   ____  ____   ___   ____   ___    ___   ____  ____   ___ ",
-    "|  _ \\ | ___||  _ \\ |_ _| / ___| / __|  / _ \\ |  _ \\|_  _| / __|",
-    "| |_) || __| | |_) | | |  \\___ \\| |    | | | || |_) | | | | |   ",
-    "|  __/ |___||  _ <  | |   ___) || |__  | |_| ||  __/  | | | |__ ",
-    "|_|         |_| \\_\\|___| |____/  \\___|  \\___/ |_|    |___| \\___|",
-]
-
-MOTIF = [
-    "    [A]- - - - - -[B]",
-    "      \\   . - .   /  ",
-    "       \\ ( MPC ) /   ",
-    "        \\ `- -' /    ",
-    "         \\  |  /     ",
-    "          \\ | /      ",
-    "           [C]       ",
-]
-
-
-def _visible_len(s):
-    out, i = 0, 0
-    while i < len(s):
-        if s[i] == "\033":
-            while i < len(s) and s[i] != "m":
-                i += 1
-            i += 1
-        else:
-            out += 1
-            i += 1
-    return out
-
-
-def _box_line(content, border, width):
-    pad = width - 2 - _visible_len(content)
-    if pad < 0:
-        pad = 0
-    return f"{border}│{RESET if border else ''}{content}{' ' * pad}{border}│{RESET if border else ''}"
-
-
-def _center(content, width):
-    pad = width - 2 - _visible_len(content)
-    left = pad // 2
-    right = pad - left
-    return f"{' ' * left}{content}{' ' * right}"
-
-
-def _print_welcome():
-    use_color = sys.stdout.isatty()
-    border = BLUE if use_color else ""
-    accent = WHITE if use_color else ""
-    dim = DIM_BLUE if use_color else ""
-    reset = RESET if use_color else ""
-
-    term_width = shutil.get_terminal_size((80, 24)).columns
-    width = max(MIN_BOX_WIDTH, min(MAX_BOX_WIDTH, term_width - 2))
-
-    top = f"{border}╭{'─' * (width - 2)}╮{reset}"
-    bottom = f"{border}╰{'─' * (width - 2)}╯{reset}"
-
-    print(top)
-    print(_box_line("", border, width))
-    for line in BANNER:
-        colored = f"{accent}{line}{reset}"
-        print(_box_line(_center(colored, width), border, width))
-    print(_box_line("", border, width))
-    for line in MOTIF:
-        print(_box_line(_center(line, width), border, width))
-    print(_box_line("", border, width))
-    print(_box_line(
-        _center("Privacy-preserving SQL query transformation", width),
-        border, width,
-    ))
-    print(_box_line(
-        _center(f"v{p.__version__}  •  type /help or /quit", width),
-        border, width,
-    ))
-    print(_box_line("", border, width))
-    print(bottom)
-
-    print()
-    print(f"  ? for shortcuts{reset}")
-    print()
-    grey = DIM_GREY if use_color else ""
-    print(f"{grey}{'─' * term_width}{reset}")
-    print()
+_server_path = os.path.join(_helpers_dir, "Server.py")
+_server_spec = importlib.util.spec_from_file_location("privq_server", _server_path)
+_server_mod = importlib.util.module_from_spec(_server_spec)
+_server_spec.loader.exec_module(_server_mod)
+Server = _server_mod.Server
 
 
 def _repl():
-    _print_welcome()
+    print_welcome()
     last_interrupt = 0.0
     while True:
         try:
-            line = input("periscopic> ")
+            line = input("PrivQ> ")
         except EOFError:
             print()
             return
@@ -168,9 +88,9 @@ def _cmd_shrinkwrap(args):
     print(p.shrinkwrap(sql, padding=True, pad_level=args.pad_level))
 
 
-def _cmd_periscopic(args):
+def _cmd_privq_join(args):
     catalog = [tuple(pair) for pair in json.loads(args.catalog)]
-    result = p.periscopic(args.tables, catalog, epsilon=args.epsilon)
+    result = p.privq_join(args.tables, catalog, epsilon=args.epsilon)
     print(json.dumps(result))
 
 
@@ -193,7 +113,7 @@ def _cmd_transform(args):
 
 def build_parser():
     parser = argparse.ArgumentParser(
-        prog="periscopic",
+        prog="PrivQ",
         description="Privacy-preserving SQL query transformation tool.",
     )
     parser.add_argument(
@@ -213,8 +133,8 @@ def build_parser():
         help="Padding level: 1=comment, 2=structural (default), 3=+dummy JOIN",
     )
 
-    # periscopic
-    dp = sub.add_parser("periscopic", help="Compute DP join order")
+    # privq-join
+    dp = sub.add_parser("privq-join", help="Compute DP join order")
     dp.add_argument(
         "tables", nargs="+", help="Table names from the FROM/JOIN clause",
     )
@@ -258,7 +178,7 @@ def main(argv=None):
     handlers = {
         "orq": _cmd_orq,
         "shrinkwrap": _cmd_shrinkwrap,
-        "periscopic": _cmd_periscopic,
+        "privq-join": _cmd_privq_join,
         "transform": _cmd_transform,
     }
     handlers[args.command](args)

@@ -1,23 +1,23 @@
-# Periscopic
+# PrivQ
 
-Periscopic is a privacy-preserving SQL transformation library with C++ extensions.
+PrivQ is a privacy-preserving SQL transformation library with C++ extensions.
 
 ## What It Includes
 
 - ORQ: normalizes SELECT column order
-- Periscopic: differentially private table-size estimation utilities
+- PrivQ join reorder: differentially private table-size estimation utilities
 - ShrinkWrap: structural SQL padding transforms
 
 ## Install
 
 ```bash
-pip install periscopic
+pip install PrivQ
 ```
 
 ## Quick Start
 
 ```python
-import periscopic as p
+import PrivQ as p
 
 sql = "SELECT salary, name, age FROM employees"
 

@@ -1,9 +1,9 @@
 """
-periscopic — Privacy-preserving SQL query transformation library.
+PrivQ — Privacy-preserving SQL query transformation library.
 
 All three pipeline stages are callable directly from this namespace:
 
-    import periscopic as p
+    import PrivQ as p
 
     # ORQ: sort SELECT columns alphabetically
     sql = p.orq("SELECT salary, name, age FROM employees")
@@ -11,8 +11,8 @@ All three pipeline stages are callable directly from this namespace:
     # ShrinkWrap: apply structural padding
     padded = p.shrinkwrap(sql, padding=True, pad_level=2)
 
-    # Periscopic: DP-estimated join reordering (returns reordered table list)
-    ordered = p.periscopic(
+    # PrivQ join reorder: DP-estimated join reordering (returns reordered table list)
+    ordered = p.privq_join(
         ["orders", "users", "products"],
         catalog=[("users", 100), ("orders", 200), ("products", 50)],
         epsilon=0.5,
@@ -28,13 +28,28 @@ pad_level reference
     3  — level 2 + dummy LEFT JOIN
 """
 
-__version__ = "1.0.0"
+__version__ = "1.1.2"
 
 from . import _orq        as _orq_mod
 from . import _shrinkwrap as _sw_mod
-from . import _periscopic as _dp_mod
+from . import _privq_join as _dp_mod
 
+#----------------------------------------------------------------------------
+# Query
+#----------------------------------------------------------------------------
+class Query:
+    """
+    A simple wrapper for a SQL query string, allowing for future extensions
+    (e.g. storing parsed AST, metadata, etc.) without changing the public API.
+    """
+    def __init__(self, sql: str):
+        self.sql = sql
 
+    def __str__(self):
+        return self.sql
+    
+    def query(self, **kwargs):
+        return transform(self.sql, **kwargs)
 # ---------------------------------------------------------------------------
 # ORQ
 # ---------------------------------------------------------------------------
@@ -54,7 +69,7 @@ def orq(sql: str) -> str:
              SELECT list is found (e.g. SELECT * or single column).
 
     Example:
-        >>> import periscopic as p
+        >>> import PrivQ as p
         >>> p.orq("SELECT salary, name, age FROM employees")
         'SELECT age, name, salary FROM employees'
     """
@@ -84,7 +99,7 @@ def shrinkwrap(sql: str, *, padding: bool = True, pad_level: int = 2) -> str:
         str: Padded SQL string.
 
     Example:
-        >>> import periscopic as p
+        >>> import PrivQ as p
         >>> p.shrinkwrap("SELECT * FROM users", padding=True, pad_level=2)
     """
     if not padding:
@@ -126,7 +141,7 @@ def shrinkwrap_pad(sql: str, pad: str) -> str:
         ValueError: If pad name is not recognised.
 
     Example:
-        >>> import periscopic as p
+        >>> import PrivQ as p
         >>> p.shrinkwrap_pad("SELECT * FROM users", "column")
     """
     _pads = {
@@ -149,10 +164,10 @@ def shrinkwrap_pad(sql: str, pad: str) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Periscopic (DP table size estimator)
+# PrivQ join reorder (DP table size estimator)
 # ---------------------------------------------------------------------------
 
-def periscopic(
+def privq_join(
     tables: list,
     catalog: list,
     *,
@@ -178,8 +193,8 @@ def periscopic(
                    Tables not in the catalog are sorted last.
 
     Example:
-        >>> import periscopic as p
-        >>> p.periscopic(
+        >>> import PrivQ as p
+        >>> p.privq_join(
         ...     ["orders", "users"],
         ...     catalog=[("users", 100), ("orders", 200)],
         ...     epsilon=0.5,
@@ -195,7 +210,7 @@ def estimator(catalog: list, *, epsilon: float = 0.5) -> _dp_mod.TableSizeEstima
     """
     Build and return a loaded TableSizeEstimator for repeated use.
 
-    Prefer this over calling periscopic() in a loop — create one estimator
+    Prefer this over calling privq_join() in a loop — create one estimator
     and reuse it across queries so the heap is only built once.
 
     Args:
@@ -206,7 +221,7 @@ def estimator(catalog: list, *, epsilon: float = 0.5) -> _dp_mod.TableSizeEstima
         TableSizeEstimator: Loaded estimator ready for join_order() calls.
 
     Example:
-        >>> import periscopic as p
+        >>> import PrivQ as p
         >>> est = p.estimator([("users", 100), ("orders", 200)], epsilon=0.5)
         >>> est.join_order(["orders", "users"])
         ['users', 'orders']
@@ -229,11 +244,11 @@ def transform(
     pad_level: int = 2,
 ) -> dict:
     """
-    Run the full Periscopic pipeline on a SQL query and return each stage's output.
+    Run the full PrivQ pipeline on a SQL query and return each stage's output.
 
     Stages (in order):
         1. ORQ        — sort SELECT columns alphabetically
-        2. Periscopic — compute DP join order from catalog (if catalog given)
+        2. PrivQ join — compute DP join order from catalog (if catalog given)
         3. ShrinkWrap — apply structural padding to the ORQ output
 
     The library does not rewrite the FROM/JOIN clause itself — the caller
@@ -256,7 +271,7 @@ def transform(
             'shrinkwrap'  — final padded SQL (built from the ORQ output)
 
     Example:
-        >>> import periscopic as p
+        >>> import PrivQ as p
         >>> result = p.transform(
         ...     "SELECT salary, name FROM orders JOIN users ON orders.user_id = users.id",
         ...     catalog=[("users", 100), ("orders", 200)],
@@ -295,7 +310,7 @@ __all__ = [
     "orq",
     "shrinkwrap",
     "shrinkwrap_pad",
-    "periscopic",
+    "privq_join",
     "estimator",
     "transform",
     "TableSizeEstimator",

@@ -1,10 +1,10 @@
 """
-setup.py — Build the periscopic Python extension package.
+setup.py — Build the PrivQ Python extension package.
 
-Compiles three pybind11 C++ extension modules from src/periscopic:
-    _orq          <- src/periscopic/ORQ/orq_sort_query.cpp  + bindings.cpp
-    _shrinkwrap   <- src/periscopic/ShrinkWrap/pad_*.cpp    + bindings.cpp
-    _periscopic   <- src/periscopic/Periscopic/*.cpp        + bindings.cpp
+Compiles three pybind11 C++ extension modules from src/PrivQ:
+    _orq          <- src/PrivQ/ORQ/orq_sort_query.cpp    + bindings.cpp
+    _shrinkwrap   <- src/PrivQ/ShrinkWrap/pad_*.cpp      + bindings.cpp
+    _privq_join   <- src/PrivQ/PrivQJoin/*.cpp           + bindings.cpp
 
 Build in-place for development:
     python setup.py build_ext --inplace
@@ -18,57 +18,57 @@ COMPILE_ARGS = ["-std=c++17", "-O2", "-Wall"]
 
 # _orq
 ext_orq = Extension(
-    name="periscopic._orq",
+    name="PrivQ._orq",
     sources=[
-        "src/periscopic/ORQ/orq_sort_query.cpp",
-        "src/periscopic/ORQ/bindings.cpp",
+        "src/PrivQ/ORQ/orq_sort_query.cpp",
+        "src/PrivQ/ORQ/bindings.cpp",
     ],
-    include_dirs=[INC, "src/periscopic/ORQ"],
+    include_dirs=[INC, "src/PrivQ/ORQ"],
     extra_compile_args=COMPILE_ARGS,
     language="c++",
 )
 
 # _shrinkwrap
 ext_shrinkwrap = Extension(
-    name="periscopic._shrinkwrap",
+    name="PrivQ._shrinkwrap",
     sources=[
-        "src/periscopic/ShrinkWrap/pad_aggregate.cpp",
-        "src/periscopic/ShrinkWrap/pad_column.cpp",
-        "src/periscopic/ShrinkWrap/pad_cte.cpp",
-        "src/periscopic/ShrinkWrap/pad_delete.cpp",
-        "src/periscopic/ShrinkWrap/pad_insert.cpp",
-        "src/periscopic/ShrinkWrap/pad_join.cpp",
-        "src/periscopic/ShrinkWrap/pad_orderby.cpp",
-        "src/periscopic/ShrinkWrap/pad_query.cpp",
-        "src/periscopic/ShrinkWrap/pad_subquery.cpp",
-        "src/periscopic/ShrinkWrap/pad_update.cpp",
-        "src/periscopic/ShrinkWrap/bindings.cpp",
+        "src/PrivQ/ShrinkWrap/pad_aggregate.cpp",
+        "src/PrivQ/ShrinkWrap/pad_column.cpp",
+        "src/PrivQ/ShrinkWrap/pad_cte.cpp",
+        "src/PrivQ/ShrinkWrap/pad_delete.cpp",
+        "src/PrivQ/ShrinkWrap/pad_insert.cpp",
+        "src/PrivQ/ShrinkWrap/pad_join.cpp",
+        "src/PrivQ/ShrinkWrap/pad_orderby.cpp",
+        "src/PrivQ/ShrinkWrap/pad_query.cpp",
+        "src/PrivQ/ShrinkWrap/pad_subquery.cpp",
+        "src/PrivQ/ShrinkWrap/pad_update.cpp",
+        "src/PrivQ/ShrinkWrap/bindings.cpp",
     ],
-    include_dirs=[INC, "src/periscopic/ShrinkWrap"],
+    include_dirs=[INC, "src/PrivQ/ShrinkWrap"],
     extra_compile_args=COMPILE_ARGS,
     language="c++",
 )
 
-# _periscopic
-ext_periscopic = Extension(
-    name="periscopic._periscopic",
+# _privq_join
+ext_privq_join = Extension(
+    name="PrivQ._privq_join",
     sources=[
-        "src/periscopic/Periscopic/laplace.cpp",
-        "src/periscopic/Periscopic/min_heap.cpp",
-        "src/periscopic/Periscopic/table_size_estimator.cpp",
-        "src/periscopic/Periscopic/bindings.cpp",
+        "src/PrivQ/PrivQJoin/laplace.cpp",
+        "src/PrivQ/PrivQJoin/min_heap.cpp",
+        "src/PrivQ/PrivQJoin/table_size_estimator.cpp",
+        "src/PrivQ/PrivQJoin/bindings.cpp",
     ],
-    include_dirs=[INC, "src/periscopic/Periscopic"],
+    include_dirs=[INC, "src/PrivQ/PrivQJoin"],
     extra_compile_args=COMPILE_ARGS,
     language="c++",
 )
 
 setup(
-    name="periscopic",
-    version="0.1.1",
+    name="PrivQ",
+    version="1.1.2",
     description="Privacy-preserving SQL transformations with ORQ, ShrinkWrap, and differential privacy utilities",
-    packages=["periscopic"],
+    packages=["PrivQ"],
     package_dir={"": "src"},
-    ext_modules=[ext_orq, ext_shrinkwrap, ext_periscopic],
+    ext_modules=[ext_orq, ext_shrinkwrap, ext_privq_join],
     python_requires=">=3.9",
 )

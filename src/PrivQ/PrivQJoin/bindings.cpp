@@ -1,8 +1,8 @@
 /**
- * Periscopic/bindings.cpp — pybind11 bindings for the DP table size estimator.
+ * PrivQJoin/bindings.cpp — pybind11 bindings for the DP table size estimator.
  *
  * Exposes TableSizeEstimator and its helpers to Python as:
- *   from periscopic._periscopic import TableSizeEstimator, laplace_sample, noisy_count
+ *   from PrivQ._privq_join import TableSizeEstimator, laplace_sample, noisy_count
  */
 
 #include <pybind11/pybind11.h>
@@ -12,9 +12,9 @@
 
 namespace py = pybind11;
 
-PYBIND11_MODULE(_periscopic, m) {
+PYBIND11_MODULE(_privq_join, m) {
     m.doc() = R"(
-        Periscopic — Differentially private table size estimator.
+        PrivQ join reorder — Differentially private table size estimator.
 
         Adds Laplace(sensitivity/epsilon) noise to table row-count estimates
         from pg_class and stores them in a hash map + min-heap.  The heap

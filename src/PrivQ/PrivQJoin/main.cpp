@@ -1,5 +1,5 @@
 /**
- * main.cpp — standalone driver for Periscopic
+ * main.cpp — standalone driver for the PrivQ join reorder stage
  *
  * Simulates feeding catalog row counts (as you would from pg_class.reltuples)
  * into the estimator and exercising each function individually:
@@ -9,9 +9,9 @@
  *   3. TableSizeEstimator::load + join_order + heap_snapshot
  *
  * Build:
- *   cd src/periscopic/Periscopic && make
+ *   cd src/PrivQ/PrivQJoin && make
  * Run:
- *   ./periscopic
+ *   ./privq_join
  */
 
 #include "laplace.h"
@@ -176,7 +176,7 @@ static void demo_estimator() {
 // ---------------------------------------------------------------------------
 int main() {
     std::cout << "\n╔══════════════════════════════════════════════════════════╗\n"
-              << "║   Periscopic Standalone Demo                             ║\n"
+              << "║   PrivQ Join Reorder Standalone Demo                     ║\n"
               << "╚══════════════════════════════════════════════════════════╝\n";
 
     demo_laplace();

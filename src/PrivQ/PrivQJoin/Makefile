@@ -1,7 +1,7 @@
 CXX      := g++
 CXXFLAGS := -std=c++17 -Wall -Wextra -O2
 
-TARGET   := periscopic
+TARGET   := privq_join
 SRCS     := laplace.cpp min_heap.cpp table_size_estimator.cpp main.cpp
 OBJS     := $(SRCS:.cpp=.o)
 

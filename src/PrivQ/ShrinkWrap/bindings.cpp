@@ -2,7 +2,7 @@
  * ShrinkWrap/bindings.cpp — pybind11 bindings for all shrinkwrap pad functions.
  *
  * Exposes each C++ pad function to Python as:
- *   from periscopic._shrinkwrap import pad_query, pad_column, ...
+ *   from PrivQ._shrinkwrap import pad_query, pad_column, ...
  */
 
 #include <pybind11/pybind11.h>
