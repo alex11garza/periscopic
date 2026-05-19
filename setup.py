@@ -66,7 +66,7 @@ ext_privq_join = Extension(
 
 setup(
     name="PrivQ",
-    version="1.1.2",
+    version="1.3.0",
     description="Privacy-preserving SQL transformations with ORQ, ShrinkWrap, and differential privacy utilities",
     packages=["PrivQ", "PrivQ.plan"],
     package_dir={"": "src"},
