@@ -68,7 +68,7 @@ setup(
     name="PrivQ",
     version="1.1.2",
     description="Privacy-preserving SQL transformations with ORQ, ShrinkWrap, and differential privacy utilities",
-    packages=["PrivQ"],
+    packages=["PrivQ", "PrivQ.plan"],
     package_dir={"": "src"},
     ext_modules=[ext_orq, ext_shrinkwrap, ext_privq_join],
     python_requires=">=3.9",

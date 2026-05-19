@@ -378,14 +378,43 @@ TableSizeEstimator = _dp_mod.TableSizeEstimator
 laplace_sample     = _dp_mod.laplace_sample
 noisy_count        = _dp_mod.noisy_count
 
+# ---------------------------------------------------------------------------
+# Plan-layer simulator (PrivQ.plan) — convenience top-level re-exports
+# ---------------------------------------------------------------------------
+from .plan import (
+    Aggregate,
+    DPResizePolicy,
+    Filter,
+    FullObliviousPolicy,
+    Join,
+    OrqPolicy,
+    QueryPlan,
+    SimulationReport,
+    StepResult,
+    Table,
+)
+
 __all__ = [
     "orq",
     "shrinkwrap",
     "shrinkwrap_pad",
+    "truncated_laplace",
+    "dp_resize",
     "privq_join",
     "estimator",
     "transform",
     "TableSizeEstimator",
     "laplace_sample",
     "noisy_count",
+    # plan layer
+    "Table",
+    "QueryPlan",
+    "Filter",
+    "Join",
+    "Aggregate",
+    "SimulationReport",
+    "StepResult",
+    "FullObliviousPolicy",
+    "DPResizePolicy",
+    "OrqPolicy",
 ]
