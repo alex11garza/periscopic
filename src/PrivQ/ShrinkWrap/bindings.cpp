@@ -168,4 +168,55 @@ PYBIND11_MODULE(_shrinkwrap, m) {
             str: DELETE with a dummy WHERE condition prepended.
         )"
     );
+
+    m.def(
+        "truncated_laplace",
+        &shrinkwrap_truncated_laplace,
+        py::arg("epsilon"),
+        py::arg("delta"),
+        py::arg("sensitivity") = 1.0,
+        R"(
+        Sample integer noise from the truncated Laplace mechanism of
+        Bater et al. (Shrinkwrap, VLDB 2018, Def. 4).
+
+        Returns a non-negative integer eta such that Pr[eta < sensitivity] <= delta,
+        drawn from a Laplace(scale=sensitivity/epsilon) centered at the shift eta_0
+        prescribed by the paper, then clamped to max(eta, 0).
+
+        Args:
+            epsilon     (float): Privacy budget for this release. Must be > 0.
+            delta       (float): Failure probability. Must be in (0, 1).
+            sensitivity (float): Query sensitivity Delta_c. Default 1.0 (counting query).
+        Returns:
+            int: Non-negative integer noise sample.
+        )"
+    );
+
+    m.def(
+        "dp_resize",
+        &shrinkwrap_dp_resize,
+        py::arg("sql"),
+        py::arg("true_count"),
+        py::arg("epsilon"),
+        py::arg("delta"),
+        py::arg("sensitivity") = 1.0,
+        R"(
+        Rewrite a SQL query so its result size is bounded by a differentially-
+        private LIMIT, implementing the Resize step from Bater et al. Algorithm 1
+        at the SQL-text layer.
+
+        Computes c_tilde = true_count + truncated_laplace(epsilon, delta, sensitivity)
+        and appends `LIMIT c_tilde`. If the query already ends with a LIMIT, it is
+        replaced; trailing semicolons are preserved.
+
+        Args:
+            sql         (str):   Input SQL string.
+            true_count  (int):   True (non-private) result cardinality. Must be >= 0.
+            epsilon     (float): Privacy budget. Must be > 0.
+            delta       (float): Failure probability. Must be in (0, 1).
+            sensitivity (float): Sensitivity Delta_c of the cardinality query. Default 1.0.
+        Returns:
+            str: SQL string with a DP-noised LIMIT clause.
+        )"
+    );
 }

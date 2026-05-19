@@ -42,6 +42,7 @@ ext_shrinkwrap = Extension(
         "src/PrivQ/ShrinkWrap/pad_query.cpp",
         "src/PrivQ/ShrinkWrap/pad_subquery.cpp",
         "src/PrivQ/ShrinkWrap/pad_update.cpp",
+        "src/PrivQ/ShrinkWrap/dp_resize.cpp",
         "src/PrivQ/ShrinkWrap/bindings.cpp",
     ],
     include_dirs=[INC, "src/PrivQ/ShrinkWrap"],

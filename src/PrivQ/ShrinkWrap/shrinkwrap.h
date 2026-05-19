@@ -1,5 +1,23 @@
 #pragma once
+#include <cstdint>
 #include <string>
+
+// Truncated Laplace mechanism from Bater et al. (Shrinkwrap, VLDB 2018, Def. 4).
+// Samples integer noise from L(epsilon, delta, sensitivity) shifted by eta_0
+// so that Pr[noise < sensitivity] <= delta, then clamps to max(noise, 0).
+// Used by shrinkwrap_dp_resize to compute a DP-noisy LIMIT bound.
+int64_t shrinkwrap_truncated_laplace(double epsilon, double delta, double sensitivity);
+
+// Appends (or replaces) a LIMIT clause with `true_count + truncated_laplace(...)`,
+// producing a SQL string whose result cardinality is differentially-private wrt
+// the true_count. Implements the Resize step from Bater et al. Algorithm 1 at
+// the SQL-text layer rather than over a secret-shared array.
+std::string shrinkwrap_dp_resize(const std::string& sql,
+                                 int64_t true_count,
+                                 double epsilon,
+                                 double delta,
+                                 double sensitivity);
+
 
 // Injects a dummy SUM(0) aggregate into the SELECT list after AVG(salary).
 // Modifies the AST targetList — would execute on a real database.

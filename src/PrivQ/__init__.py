@@ -123,6 +123,78 @@ def shrinkwrap(sql: str, *, padding: bool = True, pad_level: int = 2) -> str:
     return result
 
 
+def truncated_laplace(
+    epsilon: float,
+    delta: float,
+    sensitivity: float = 1.0,
+) -> int:
+    """
+    Sample integer noise from the truncated Laplace mechanism of Bater et al.
+    (Shrinkwrap, VLDB 2018, Def. 4).
+
+    Returns a non-negative integer eta such that Pr[eta < sensitivity] <= delta,
+    drawn from a Laplace(scale=sensitivity/epsilon) centered at the paper's
+    shift eta_0 and clamped to max(eta, 0).
+
+    Args:
+        epsilon     (float): Privacy budget for this release. Must be > 0.
+        delta       (float): Failure probability. Must be in (0, 1).
+        sensitivity (float): Query sensitivity Delta_c (default 1.0, counting query).
+
+    Returns:
+        int: Non-negative integer noise sample.
+
+    Example:
+        >>> import PrivQ as p
+        >>> p.truncated_laplace(1.0, 1e-5, 1.0)  # doctest: +SKIP
+        12
+    """
+    return _sw_mod.truncated_laplace(epsilon, delta, sensitivity)
+
+
+def dp_resize(
+    sql: str,
+    true_count: int,
+    *,
+    epsilon: float,
+    delta: float,
+    sensitivity: float = 1.0,
+) -> str:
+    """
+    Append (or replace) a SQL LIMIT clause with a differentially-private
+    upper bound on the result cardinality, implementing the Resize step
+    from Bater et al. Shrinkwrap Algorithm 1 at the SQL-text layer.
+
+    Computes c_tilde = true_count + truncated_laplace(epsilon, delta, sensitivity)
+    and rewrites the SQL so its result is bounded by LIMIT c_tilde. The DP
+    guarantee applies to the released LIMIT value: any two neighboring
+    databases differing by `sensitivity` rows produce LIMIT distributions
+    within e^epsilon (with failure probability delta).
+
+    If the input SQL already ends with `LIMIT n`, that LIMIT is replaced;
+    a trailing semicolon is preserved. LIMITs inside subqueries are not
+    touched — they belong to a different operator with its own sensitivity.
+
+    Args:
+        sql         (str):   Input SQL string.
+        true_count  (int):   True (non-private) result cardinality. Must be >= 0.
+        epsilon     (float): Privacy budget. Must be > 0.
+        delta       (float): Failure probability. Must be in (0, 1).
+        sensitivity (float): Sensitivity Delta_c of the cardinality query.
+                             Default 1.0 (counting query: adding/removing
+                             one row changes the count by at most one).
+
+    Returns:
+        str: SQL string with a DP-noised LIMIT clause.
+
+    Example:
+        >>> import PrivQ as p
+        >>> p.dp_resize("SELECT name FROM users", 100, epsilon=1.0, delta=1e-5)
+        # 'SELECT name FROM users LIMIT 112'  (exact value is random)
+    """
+    return _sw_mod.dp_resize(sql, true_count, epsilon, delta, sensitivity)
+
+
 def shrinkwrap_pad(sql: str, pad: str) -> str:
     """
     Apply a single named ShrinkWrap pad to a SQL query.
